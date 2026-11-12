@@ -23,16 +23,20 @@ export default function ProjectDetailsModal() {
     setActiveModal,
     currentUser,
     applications,
-    deleteProject
+    deleteProject,
+    updateApplicationStatus,
+    setReviewTargetApp
   } = useApp();
 
   if (!selectedProject) return null;
 
-  const existingApp = applications.find(
-    a => a.projectId === selectedProject.id && a.studentId === currentUser.id
-  );
+  const projectApps = applications.filter(a => a.projectId === selectedProject.id);
 
-  const match = currentUser.role === 'student'
+  const existingApp = currentUser
+    ? applications.find(a => a.projectId === selectedProject.id && a.studentId === currentUser.id)
+    : null;
+
+  const match = currentUser?.skills
     ? calculateMatchScore(currentUser.skills || [], selectedProject.requiredSkills || [])
     : null;
 
@@ -44,7 +48,13 @@ export default function ProjectDetailsModal() {
     setActiveModal('talentMatcher');
   };
 
-  const isOwner = selectedProject.clientId === currentUser.id || currentUser.role === 'admin';
+  const handleCompleteCandidateJob = (app) => {
+    updateApplicationStatus(app.id, 'Completed');
+    setReviewTargetApp(app);
+    setActiveModal('submitReview');
+  };
+
+  const isOwner = selectedProject.clientId === currentUser?.id || currentUser?.role === 'admin' || currentUser?.role === 'client';
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -70,7 +80,7 @@ export default function ProjectDetailsModal() {
 
           <button
             onClick={() => { setSelectedProject(null); setActiveModal(null); }}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+            className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -105,12 +115,12 @@ export default function ProjectDetailsModal() {
             <div>
               <span className="block text-xs text-slate-400 font-medium">Proposals Received</span>
               <span className="text-sm font-bold text-blue-600">
-                {selectedProject.proposalsCount} applications
+                {projectApps.length} applications
               </span>
             </div>
           </div>
 
-          {/* Skill-Based Recommendation Score (Advanced Feature 1) */}
+          {/* Skill-Based Recommendation Score */}
           {match && (
             <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl">
               <div className="flex items-center justify-between mb-2">
@@ -126,7 +136,7 @@ export default function ProjectDetailsModal() {
               </div>
               <p className="text-xs text-blue-800 leading-relaxed mb-3">
                 {match.score >= 70
-                  ? "🎉 You have high overlap with this project's technical requirements! Applying is strongly recommended."
+                  ? "🎉 You have high overlap with this project's requirements! Applying is strongly recommended."
                   : "💡 You have some matching skills. Review the missing tags below to see if your experience aligns."}
               </p>
 
@@ -148,7 +158,7 @@ export default function ProjectDetailsModal() {
 
           {/* Detailed Job Description */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
               Project Overview & Requirements
             </h4>
             <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
@@ -158,7 +168,7 @@ export default function ProjectDetailsModal() {
 
           {/* Required Skills */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-2.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">
               Required Skills & Technologies
             </h4>
             <div className="flex flex-wrap gap-2">
@@ -172,6 +182,41 @@ export default function ProjectDetailsModal() {
               ))}
             </div>
           </div>
+
+          {/* Received Applications Section inside Modal */}
+          {projectApps.length > 0 && (
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Received Proposals ({projectApps.length})
+              </h4>
+              <div className="space-y-3">
+                {projectApps.map(app => (
+                  <div key={app.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900">{app.studentName}</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded">
+                          ${app.proposedRate} {app.rateType === 'hourly' ? '/hr' : 'Fixed'}
+                        </span>
+                        <span className="text-[10px] font-semibold text-slate-500">Status: {app.status}</span>
+                      </div>
+                      <p className="text-slate-600 mt-1 line-clamp-1 italic">"{app.coverLetter}"</p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleCompleteCandidateJob(app)}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs flex items-center gap-1 cursor-pointer"
+                      >
+                        <Award className="w-3.5 h-3.5" />
+                        <span>Complete & Rate</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Client Bio & Verification */}
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
@@ -188,10 +233,9 @@ export default function ProjectDetailsModal() {
               </div>
             </div>
 
-            {/* Bonus matching trigger for clients/instructors */}
             <button
               onClick={handleOpenTalentMatch}
-              className="text-xs font-semibold px-3 py-2 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors flex items-center gap-1.5"
+              className="text-xs font-semibold px-3 py-2 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Users className="w-4 h-4 text-purple-600" />
               <span>AI Student Matcher</span>
@@ -209,9 +253,9 @@ export default function ProjectDetailsModal() {
                   setSelectedProject(null);
                   setActiveModal(null);
                 }}
-                className="text-xs font-semibold text-rose-600 hover:text-rose-700"
+                className="text-xs font-semibold text-rose-600 hover:text-rose-700 cursor-pointer"
               >
-                Delete / Moderate Job
+                Delete Job
               </button>
             )}
           </div>
@@ -219,24 +263,18 @@ export default function ProjectDetailsModal() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => { setSelectedProject(null); setActiveModal(null); }}
-              className="px-5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              className="px-5 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
               Close
             </button>
 
-            {existingApp ? (
-              <div className="px-5 py-2.5 bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl">
-                Proposal Submitted ({existingApp.status})
-              </div>
-            ) : (
-              <button
-                onClick={handleApply}
-                className="px-6 py-2.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                <span>Apply for this Project</span>
-              </button>
-            )}
+            <button
+              onClick={handleApply}
+              className="px-6 py-2.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+            >
+              <Send className="w-4 h-4" />
+              <span>{existingApp ? 'Update My Proposal' : 'Apply for this Project'}</span>
+            </button>
           </div>
         </div>
       </div>

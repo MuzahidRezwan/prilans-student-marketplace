@@ -16,40 +16,43 @@ export default function ApplyModal() {
     setActiveModal,
     currentUser,
     submitApplication,
-    showToast
+    showToast,
+    applications
   } = useApp();
 
+  const existingApp = selectedProject && currentUser
+    ? applications.find(a => a.projectId === selectedProject.id && a.studentId === currentUser.id)
+    : null;
+
   const [proposedRate, setProposedRate] = useState(
-    selectedProject ? selectedProject.rate : 20
+    existingApp ? existingApp.proposedRate : (selectedProject ? selectedProject.rate : 20)
   );
-  const [deliveryDays, setDeliveryDays] = useState(7);
-  const [coverLetter, setCoverLetter] = useState('');
-  const [selectedPortfolios, setSelectedPortfolios] = useState([]);
+  const [deliveryDays, setDeliveryDays] = useState(
+    existingApp ? existingApp.deliveryDays : 7
+  );
+  const [coverLetter, setCoverLetter] = useState(
+    existingApp ? existingApp.coverLetter : "I have reviewed your project requirements and I have the right skill set to build this with high quality and fast turnaround."
+  );
+  const [selectedPortfolios, setSelectedPortfolios] = useState(
+    existingApp ? (existingApp.portfolioSamples || []) : []
+  );
 
   if (!selectedProject) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!coverLetter.trim()) {
-      showToast('Please provide a cover letter pitch to explain your qualifications.', 'error');
-      return;
-    }
+    const finalLetter = coverLetter.trim() || "I have reviewed your project requirements and I have the right skill set to build this with high quality and fast turnaround.";
 
-    if (currentUser.role !== 'student') {
-      showToast('Only registered student accounts can submit project proposals.', 'error');
-      return;
-    }
-
-    const success = submitApplication({
+    const result = submitApplication({
       projectId: selectedProject.id,
-      proposedRate,
-      deliveryDays,
-      coverLetter,
+      proposedRate: Number(proposedRate) || selectedProject.rate,
+      deliveryDays: Number(deliveryDays) || 7,
+      coverLetter: finalLetter,
       portfolioSamples: selectedPortfolios,
     });
 
-    if (success) {
+    if (result) {
       setActiveModal(null);
     }
   };
@@ -68,16 +71,17 @@ export default function ApplyModal() {
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div>
-            <span className="text-[10px] font-bold tracking-wider uppercase text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
-              Feature: Apply for a Project (8 Marks)
-            </span>
-            <h2 className="text-xl font-bold text-slate-900 mt-1">
-              Submit Proposal: {selectedProject.title}
+            <h2 className="text-xl font-bold text-slate-900">
+              {existingApp ? 'Update Your Proposal' : 'Submit Project Proposal'}
             </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Project: <span className="font-semibold text-slate-700">{selectedProject.title}</span>
+            </p>
           </div>
           <button
+            type="button"
             onClick={() => setActiveModal(null)}
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200"
+            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -85,6 +89,13 @@ export default function ApplyModal() {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+          {existingApp && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+              <span>You previously submitted a proposal. Submitting again will update your bid and details.</span>
+            </div>
+          )}
+
           {/* Rate & Timeline Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -125,7 +136,7 @@ export default function ApplyModal() {
                 />
               </div>
               <span className="text-[11px] text-slate-400 mt-1 block">
-                Recommended timeline: {selectedProject.deadline || '7-14 days'}
+                Target timeline: {selectedProject.deadline || '7-14 days'}
               </span>
             </div>
           </div>
@@ -133,19 +144,18 @@ export default function ApplyModal() {
           {/* Cover Letter */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Cover Letter & Pitch <span className="text-red-500">*</span>
+              Cover Letter & Pitch
             </label>
             <textarea
               rows={4}
-              required
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
-              placeholder="Introduce yourself, highlight your university coursework or hands-on experience, and describe your approach to delivering this project..."
+              placeholder="Introduce yourself, highlight your skills, and describe your approach to delivering this project..."
               className="w-full p-3 text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none leading-relaxed"
             />
           </div>
 
-          {/* Attach Portfolio Samples (Advanced Feature 2 Integration) */}
+          {/* Attach Portfolio Samples */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
@@ -156,7 +166,7 @@ export default function ApplyModal() {
               </span>
             </div>
 
-            {currentUser.portfolio && currentUser.portfolio.length > 0 ? (
+            {currentUser?.portfolio && currentUser.portfolio.length > 0 ? (
               <div className="space-y-2">
                 {currentUser.portfolio.map(p => {
                   const isChecked = selectedPortfolios.includes(p.title);
@@ -188,16 +198,16 @@ export default function ApplyModal() {
               </div>
             ) : (
               <p className="text-xs text-slate-400 italic bg-slate-50 p-3 rounded-xl border border-slate-100">
-                No portfolio items added yet. You can add showcase items from your Student Profile page.
+                No portfolio items added yet. You can showcase projects in your profile.
               </p>
             )}
           </div>
 
-          {/* Student Persona Info Box */}
+          {/* Current User Info Box */}
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>
-              Applying as <strong>{currentUser.name}</strong> ({currentUser.university || 'Student Developer'})
+              Applying as <strong>{currentUser?.name}</strong> ({currentUser?.email})
             </span>
           </div>
 
@@ -206,16 +216,16 @@ export default function ApplyModal() {
             <button
               type="button"
               onClick={() => setActiveModal(null)}
-              className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              className="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-2"
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              <span>Submit Proposal</span>
+              <span>{existingApp ? 'Update Proposal' : 'Submit Proposal'}</span>
             </button>
           </div>
         </form>

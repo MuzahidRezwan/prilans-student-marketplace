@@ -16,7 +16,8 @@ import {
   PlusCircle,
   Award,
   Layers,
-  LogOut
+  LogOut,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -106,7 +107,7 @@ export default function Sidebar() {
 
           <button
             onClick={() => setCurrentView('find-projects')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
               currentView === 'find-projects'
                 ? 'bg-blue-50 text-blue-600 font-semibold shadow-sm shadow-blue-100/50'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -120,7 +121,7 @@ export default function Sidebar() {
 
           <button
             onClick={() => setCurrentView('find-students')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
               currentView === 'find-students'
                 ? 'bg-blue-50 text-blue-600 font-semibold'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -135,48 +136,47 @@ export default function Sidebar() {
             </span>
           </button>
 
-          {/* Client specific: Post & Manage Jobs */}
-          {isClient && (
-            <button
-              onClick={() => setCurrentView('my-projects')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                currentView === 'my-projects'
-                  ? 'bg-blue-50 text-blue-600 font-semibold'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Briefcase className="w-4 h-4" />
-                <span>My Posted Projects</span>
-              </div>
-            </button>
-          )}
+          {/* Manage Applications & Candidates (Available for all to review and complete jobs) */}
+          <button
+            onClick={() => setCurrentView('my-projects')}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+              currentView === 'my-projects'
+                ? 'bg-blue-50 text-blue-600 font-semibold'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Briefcase className="w-4 h-4 text-emerald-600" />
+              <span>Manage Candidates</span>
+            </div>
+            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-bold">
+              {applications.length}
+            </span>
+          </button>
 
-          {/* Student specific: Proposals */}
-          {isStudent && (
-            <button
-              onClick={() => setCurrentView('my-proposals')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                currentView === 'my-proposals'
-                  ? 'bg-blue-50 text-blue-600 font-semibold'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <FileText className="w-4 h-4" />
-                <span>My Proposals</span>
-              </div>
-              {myProposalsCount > 0 && (
-                <span className="text-[11px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">
-                  {myProposalsCount}
-                </span>
-              )}
-            </button>
-          )}
+          {/* Proposals Tracker */}
+          <button
+            onClick={() => setCurrentView('my-proposals')}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+              currentView === 'my-proposals'
+                ? 'bg-blue-50 text-blue-600 font-semibold'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <FileText className="w-4 h-4" />
+              <span>My Proposals</span>
+            </div>
+            {myProposalsCount > 0 && (
+              <span className="text-[11px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">
+                {myProposalsCount}
+              </span>
+            )}
+          </button>
 
           <button
             onClick={() => setCurrentView('messages')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
               currentView === 'messages'
                 ? 'bg-blue-50 text-blue-600 font-semibold'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -196,7 +196,7 @@ export default function Sidebar() {
           {/* Admin Dashboard */}
           <button
             onClick={() => setCurrentView('admin')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
               currentView === 'admin'
                 ? 'bg-purple-50 text-purple-700 font-semibold'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -209,48 +209,36 @@ export default function Sidebar() {
           </button>
 
           {/* Student Profile & Portfolio */}
-          {isStudent && (
-            <button
-              onClick={() => setCurrentView('profile')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                currentView === 'profile'
-                  ? 'bg-blue-50 text-blue-600 font-semibold'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Award className="w-4 h-4" />
-                <span>Skill Profile & Portfolio</span>
-              </div>
-            </button>
-          )}
+          <button
+            onClick={() => setCurrentView('profile')}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+              currentView === 'profile'
+                ? 'bg-blue-50 text-blue-600 font-semibold'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Award className="w-4 h-4" />
+              <span>Skill Profile & Portfolio</span>
+            </div>
+          </button>
         </div>
 
         {/* Quick Action Button */}
         <div className="px-3 pt-3">
-          {isClient ? (
-            <button
-              onClick={() => setActiveModal('postJob')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>Post a Project</span>
-            </button>
-          ) : isStudent ? (
-            <button
-              onClick={() => setCurrentView('profile')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs font-semibold rounded-xl transition-all cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Edit Skill Profile</span>
-            </button>
-          ) : null}
+          <button
+            onClick={() => setActiveModal('postJob')}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Post a Project</span>
+          </button>
         </div>
       </div>
 
       {/* Footer / Plus Plan & Logout */}
       <div className="p-3 border-t border-slate-100 space-y-3">
-        {/* Plus Plan Card (Matching Image 2 Mockup!) */}
+        {/* Plus Plan Card */}
         <div className="p-3.5 bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl text-white shadow-sm">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="w-5 h-5 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400">
