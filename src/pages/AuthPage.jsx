@@ -11,7 +11,11 @@ import {
   ArrowRight,
   UserPlus,
   Layers,
-  Key
+  Key,
+  ShieldAlert,
+  ShieldCheck,
+  Check,
+  X
 } from 'lucide-react';
 
 export default function AuthPage() {
@@ -29,7 +33,7 @@ export default function AuthPage() {
 
   // Login inputs
   const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('password123');
+  const [loginPassword, setLoginPassword] = useState('');
 
   // Sign Up inputs
   const [name, setName] = useState('');
@@ -41,6 +45,25 @@ export default function AuthPage() {
   const [studentId, setStudentId] = useState('SE-2024-8841');
   const [company, setCompany] = useState('');
   const [skills, setSkills] = useState('React, UI Design, WordPress, Figma');
+
+  // Password validation criteria
+  const hasMinLength = regPassword.length >= 8;
+  const hasUpper = /[A-Z]/.test(regPassword);
+  const hasLower = /[a-z]/.test(regPassword);
+  const hasNumber = /[0-9]/.test(regPassword);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(regPassword);
+
+  const criteriaCount = [hasMinLength, hasUpper, hasLower, hasNumber, hasSpecial].filter(Boolean).length;
+  const isPasswordStrong = hasMinLength && hasUpper && hasLower && hasNumber && hasSpecial;
+
+  const getStrengthLabel = () => {
+    if (regPassword.length === 0) return { label: 'Empty', color: 'bg-slate-200', text: 'text-slate-400' };
+    if (criteriaCount <= 2) return { label: 'Weak', color: 'bg-rose-500', text: 'text-rose-600' };
+    if (criteriaCount <= 4) return { label: 'Medium', color: 'bg-amber-500', text: 'text-amber-600' };
+    return { label: 'Strong', color: 'bg-emerald-500', text: 'text-emerald-600' };
+  };
+
+  const strength = getStrengthLabel();
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
@@ -55,12 +78,12 @@ export default function AuthPage() {
     e.preventDefault();
 
     if (!name.trim() || !regEmail.trim()) {
-      showToast('Please provide your name and email.', 'error');
+      showToast('Please provide your full name and valid email.', 'error');
       return;
     }
 
-    if (!regPassword || regPassword.length < 4) {
-      showToast('Please enter a password with at least 4 characters.', 'error');
+    if (!isPasswordStrong) {
+      showToast('Password is too weak. Must meet all security requirements.', 'error');
       return;
     }
 
@@ -89,7 +112,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      {/* Brand Logo & Header */}
+      {/* Brand Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-6">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 mb-3">
           <Layers className="w-6 h-6" />
@@ -102,8 +125,8 @@ export default function AuthPage() {
         </p>
         <p className="text-sm text-slate-500 mt-2">
           {authMode === 'signup'
-            ? 'Create an account to browse and apply for projects'
-            : 'Sign in to access your projects and proposals'}
+            ? 'Create a secure student or client account to enter the marketplace'
+            : 'Sign in with your verified credentials'}
         </p>
       </div>
 
@@ -111,12 +134,12 @@ export default function AuthPage() {
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
           {/* Left Column: Form (7 cols) */}
           <div className="lg:col-span-7 p-6 sm:p-10">
-            {/* Sign In / Sign Up Mode Tabs */}
+            {/* Mode Tabs */}
             <div className="grid grid-cols-2 p-1.5 bg-slate-100 rounded-2xl mb-6">
               <button
                 type="button"
                 onClick={() => setAuthMode('signup')}
-                className={`py-2.5 text-xs font-bold rounded-xl transition-all ${
+                className={`py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                   authMode === 'signup'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-500 hover:text-slate-900'
@@ -127,7 +150,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setAuthMode('login')}
-                className={`py-2.5 text-xs font-bold rounded-xl transition-all ${
+                className={`py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                   authMode === 'login'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-500 hover:text-slate-900'
@@ -137,7 +160,7 @@ export default function AuthPage() {
               </button>
             </div>
 
-            {/* Google Sign In / Sign Up Button */}
+            {/* Google OAuth Button */}
             <button
               type="button"
               onClick={() => loginWithGoogle(role)}
@@ -181,7 +204,7 @@ export default function AuthPage() {
                 {/* Role Toggle */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Account Type
+                    Account Role
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -194,7 +217,7 @@ export default function AuthPage() {
                       }`}
                     >
                       <GraduationCap className="w-4 h-4" />
-                      <span>Student</span>
+                      <span>University Student</span>
                     </button>
                     <button
                       type="button"
@@ -206,7 +229,7 @@ export default function AuthPage() {
                       }`}
                     >
                       <Building className="w-4 h-4" />
-                      <span>Client / Business</span>
+                      <span>Client / Employer</span>
                     </button>
                   </div>
                 </div>
@@ -242,12 +265,17 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                {/* Password & Confirm Password */}
+                {/* Strong Password Input */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                      Create Password *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                        Password *
+                      </label>
+                      <span className={`text-[10px] font-extrabold ${strength.text}`}>
+                        {regPassword.length > 0 && `(${strength.label})`}
+                      </span>
+                    </div>
                     <div className="relative">
                       <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                       <input
@@ -255,7 +283,7 @@ export default function AuthPage() {
                         required
                         value={regPassword}
                         onChange={(e) => setRegPassword(e.target.value)}
-                        placeholder="At least 4 characters"
+                        placeholder="Min 8 chars, A-Z, 0-9, symbol"
                         className="w-full pl-8 pr-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
                     </div>
@@ -272,10 +300,38 @@ export default function AuthPage() {
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Re-enter password"
+                        placeholder="Re-enter exact password"
                         className="w-full pl-8 pr-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
                     </div>
+                  </div>
+                </div>
+
+                {/* Password Strength Progress Bar & Rules */}
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
+                  <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${strength.color}`}
+                      style={{ width: `${(criteriaCount / 5) * 100}%` }}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-1 gap-x-2 text-[10px]">
+                    <span className={`flex items-center gap-1 ${hasMinLength ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
+                      {hasMinLength ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />} 8+ Characters
+                    </span>
+                    <span className={`flex items-center gap-1 ${hasUpper ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
+                      {hasUpper ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />} Uppercase (A-Z)
+                    </span>
+                    <span className={`flex items-center gap-1 ${hasLower ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
+                      {hasLower ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />} Lowercase (a-z)
+                    </span>
+                    <span className={`flex items-center gap-1 ${hasNumber ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
+                      {hasNumber ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />} Number (0-9)
+                    </span>
+                    <span className={`flex items-center gap-1 ${hasSpecial ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
+                      {hasSpecial ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />} Special Symbol
+                    </span>
                   </div>
                 </div>
 
@@ -342,17 +398,22 @@ export default function AuthPage() {
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       placeholder="e.g. Apex Tech Ventures"
-                      className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
+                  disabled={!isPasswordStrong}
+                  className={`w-full py-3 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 mt-4 cursor-pointer ${
+                    isPasswordStrong
+                      ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
+                      : 'bg-slate-300 cursor-not-allowed opacity-70'
+                  }`}
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>Sign Up & Enter Project</span>
+                  <span>Create Account & Sign In</span>
                 </button>
 
                 <p className="text-[11px] text-center text-slate-400 mt-2">
@@ -360,7 +421,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setAuthMode('login')}
-                    className="text-blue-600 font-bold hover:underline"
+                    className="text-blue-600 font-bold hover:underline cursor-pointer"
                   >
                     Sign In here
                   </button>
@@ -407,7 +468,7 @@ export default function AuthPage() {
                   type="submit"
                   className="w-full py-3 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
                 >
-                  <span>Sign In & Enter Project</span>
+                  <span>Sign In to Account</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
@@ -416,7 +477,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setAuthMode('signup')}
-                    className="text-blue-600 font-bold hover:underline"
+                    className="text-blue-600 font-bold hover:underline cursor-pointer"
                   >
                     Sign Up now
                   </button>
@@ -425,17 +486,17 @@ export default function AuthPage() {
             )}
           </div>
 
-          {/* Right Column: 1-Click Fast Accounts (5 cols) */}
+          {/* Right Column: Demo Accounts (5 cols) */}
           <div className="lg:col-span-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-amber-400" />
                 <h3 className="text-sm font-bold text-white">
-                  1-Click Quick Demo Sign In
+                  Quick Demo Accounts
                 </h3>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                Click any existing persona to sign in immediately:
+                Click any role to test as Student, Client, or Admin:
               </p>
 
               <div className="space-y-2.5">
@@ -466,7 +527,7 @@ export default function AuthPage() {
             </div>
 
             <div className="pt-6 border-t border-white/10 mt-6 text-[11px] text-slate-400 leading-relaxed">
-              Default password for all demo accounts: <code className="text-amber-300 font-mono">password123</code>
+              Default demo password: <code className="text-amber-300 font-mono">password123</code>
             </div>
           </div>
         </div>

@@ -54,7 +54,10 @@ export default function ProjectDetailsModal() {
     setActiveModal('submitReview');
   };
 
-  const isOwner = selectedProject.clientId === currentUser?.id || currentUser?.role === 'admin' || currentUser?.role === 'client';
+  // STRICT ACCESS: Only the employer who posted this job or an admin can manage proposals!
+  const isOwner = selectedProject.clientId === currentUser?.id;
+  const isAdmin = currentUser?.role === 'admin';
+  const canManageCandidates = isOwner || isAdmin;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -120,14 +123,14 @@ export default function ProjectDetailsModal() {
             </div>
           </div>
 
-          {/* Skill-Based Recommendation Score */}
-          {match && (
+          {/* Skill-Based Compatibility Analysis */}
+          {match && currentUser?.role === 'student' && (
             <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-blue-600" />
                   <h4 className="text-sm font-bold text-blue-900">
-                    Skill Match Compatibility Analysis
+                    Your Skill Match Compatibility
                   </h4>
                 </div>
                 <span className="text-sm font-extrabold text-blue-700 bg-white px-2.5 py-1 rounded-full border border-blue-200">
@@ -183,12 +186,17 @@ export default function ProjectDetailsModal() {
             </div>
           </div>
 
-          {/* Received Applications Section inside Modal */}
-          {projectApps.length > 0 && (
+          {/* ONLY SHOWN TO AUTHORIZED EMPLOYER OR ADMIN */}
+          {canManageCandidates && projectApps.length > 0 && (
             <div className="pt-4 border-t border-slate-100 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Received Proposals ({projectApps.length})
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Manage Candidate Proposals ({projectApps.length})
+                </h4>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
+                  Employer Control
+                </span>
+              </div>
               <div className="space-y-3">
                 {projectApps.map(app => (
                   <div key={app.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
@@ -209,7 +217,7 @@ export default function ProjectDetailsModal() {
                         className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs flex items-center gap-1 cursor-pointer"
                       >
                         <Award className="w-3.5 h-3.5" />
-                        <span>Complete & Rate</span>
+                        <span>Complete Job & Rate</span>
                       </button>
                     </div>
                   </div>
@@ -228,25 +236,27 @@ export default function ProjectDetailsModal() {
                 <h5 className="text-sm font-bold text-slate-900">{selectedProject.clientName}</h5>
                 <p className="text-xs text-slate-500 flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-                  Payment Verified Client · {selectedProject.location}
+                  Payment Verified Employer · {selectedProject.location}
                 </p>
               </div>
             </div>
 
-            <button
-              onClick={handleOpenTalentMatch}
-              className="text-xs font-semibold px-3 py-2 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors flex items-center gap-1.5 cursor-pointer"
-            >
-              <Users className="w-4 h-4 text-purple-600" />
-              <span>AI Student Matcher</span>
-            </button>
+            {canManageCandidates && (
+              <button
+                onClick={handleOpenTalentMatch}
+                className="text-xs font-semibold px-3 py-2 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Users className="w-4 h-4 text-purple-600" />
+                <span>AI Student Matcher</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* Footer Actions */}
         <div className="p-5 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div>
-            {isOwner && (
+            {canManageCandidates && (
               <button
                 onClick={() => {
                   deleteProject(selectedProject.id);
@@ -268,13 +278,16 @@ export default function ProjectDetailsModal() {
               Close
             </button>
 
-            <button
-              onClick={handleApply}
-              className="px-6 py-2.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
-            >
-              <Send className="w-4 h-4" />
-              <span>{existingApp ? 'Update My Proposal' : 'Apply for this Project'}</span>
-            </button>
+            {/* Students can Apply or Update Proposal */}
+            {currentUser?.role === 'student' && (
+              <button
+                onClick={handleApply}
+                className="px-6 py-2.5 bg-slate-900 hover:bg-blue-600 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+              >
+                <Send className="w-4 h-4" />
+                <span>{existingApp ? 'Update My Proposal' : 'Apply for this Project'}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
