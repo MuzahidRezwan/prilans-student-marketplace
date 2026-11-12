@@ -8,7 +8,8 @@ import {
   PlusCircle,
   RotateCcw,
   User,
-  GraduationCap
+  GraduationCap,
+  LogIn
 } from 'lucide-react';
 
 export default function Header() {
@@ -45,11 +46,12 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Prominent Login / Register Button */}
           <button
-            onClick={() => setActiveModal('authModal')}
-            className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
+            onClick={() => setCurrentView('auth')}
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-xs"
           >
-            <User className="w-3.5 h-3.5" />
+            <LogIn className="w-3.5 h-3.5" />
             <span>Login / Register (8m)</span>
           </button>
           <span className="text-slate-600">|</span>

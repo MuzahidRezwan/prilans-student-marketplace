@@ -9,6 +9,7 @@ import MyProposalsPage from './pages/MyProposalsPage';
 import StudentProfilePage from './pages/StudentProfilePage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import MessagesPage from './pages/MessagesPage';
+import AuthPage from './pages/AuthPage';
 
 // Modals
 import ProjectDetailsModal from './components/ProjectDetailsModal';
@@ -44,6 +45,7 @@ export default function App() {
           {currentView === 'profile' && <StudentProfilePage />}
           {currentView === 'admin' && <AdminDashboardPage />}
           {currentView === 'messages' && <MessagesPage />}
+          {currentView === 'auth' && <AuthPage />}
         </main>
       </div>
 

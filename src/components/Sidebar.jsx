@@ -15,7 +15,8 @@ import {
   UserCheck,
   PlusCircle,
   Award,
-  Layers
+  Layers,
+  LogIn
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -43,7 +44,10 @@ export default function Sidebar() {
       <div>
         {/* Brand Header */}
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <div
+            onClick={() => setCurrentView('find-projects')}
+            className="flex items-center gap-2.5 cursor-pointer"
+          >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
               <Layers className="w-5 h-5" />
             </div>
@@ -56,8 +60,12 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* User Card */}
-        <div className="p-4 mx-3 my-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-3">
+        {/* User Card with click to view profile or switch account */}
+        <div
+          onClick={() => setCurrentView('auth')}
+          title="Click to go to Sign In / Account Page"
+          className="p-4 mx-3 my-3 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-2xl flex items-center gap-3 cursor-pointer transition-all group"
+        >
           <img
             src={currentUser.avatar}
             alt={currentUser.name}
@@ -65,7 +73,7 @@ export default function Sidebar() {
           />
           <div className="overflow-hidden min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <h4 className="text-sm font-semibold text-slate-900 truncate">{currentUser.name}</h4>
+              <h4 className="text-sm font-semibold text-slate-900 truncate group-hover:text-blue-600">{currentUser.name}</h4>
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
                 isStudent ? 'bg-blue-100 text-blue-700' :
                 isClient ? 'bg-emerald-100 text-emerald-700' :
@@ -80,9 +88,28 @@ export default function Sidebar() {
 
         {/* Navigation Menu (Matching Image 2 Mockup) */}
         <div className="px-3 py-2 space-y-1">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">
-            Main Menu
+          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2 flex items-center justify-between">
+            <span>Main Menu</span>
+            <span className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono">SE331</span>
           </div>
+
+          {/* Dedicated Sign In / Register Page Link */}
+          <button
+            onClick={() => setCurrentView('auth')}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              currentView === 'auth'
+                ? 'bg-blue-600 text-white font-bold shadow-sm'
+                : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-semibold'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <LogIn className="w-4 h-4 text-blue-500" />
+              <span>Login / Register</span>
+            </div>
+            <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">
+              8 marks
+            </span>
+          </button>
 
           <button
             onClick={() => setCurrentView('find-projects')}
