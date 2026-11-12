@@ -124,14 +124,11 @@ export function AppProvider({ children }) {
     }
   };
 
-  // Auth: Register / Sign Up User (with password!)
+  // Auth: Register / Sign Up User (saves account, then prompts user to Sign In)
   const registerUser = (userData) => {
     const existing = users.find(u => u.email.toLowerCase() === userData.email.toLowerCase());
     if (existing) {
-      // If user exists, log them in directly
-      setCurrentUser(existing);
-      showToast(`Welcome back, ${existing.name}! Logged into your existing account.`);
-      setCurrentView('find-projects');
+      showToast('An account with this email already exists. Please Sign In.', 'info');
       return existing;
     }
 
@@ -148,9 +145,6 @@ export function AppProvider({ children }) {
     };
 
     setUsers(prev => [newUser, ...prev]);
-    setCurrentUser(newUser);
-    showToast(`Welcome ${newUser.name}! Your account has been created.`);
-    setCurrentView('find-projects');
     return newUser;
   };
 
@@ -158,54 +152,52 @@ export function AppProvider({ children }) {
   const loginUser = (email, password) => {
     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (!user) {
-      // If no account exists, automatically create one so the user is never blocked!
-      const autoUser = {
-        id: `user-student-${Date.now()}`,
-        name: email.split('@')[0],
-        email: email.toLowerCase(),
-        password: password || 'password123',
-        role: 'student',
-        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(email)}`,
-        rating: 5.0,
-        reviewsCount: 0,
-        completedProjectsCount: 0,
-        skills: ['React', 'UI Design', 'Figma', 'Web Development'],
-        portfolio: [],
-      };
-      setUsers(prev => [autoUser, ...prev]);
-      setCurrentUser(autoUser);
-      showToast(`Welcome ${autoUser.name}! Account created and signed in.`);
-      setCurrentView('find-projects');
-      return true;
+      showToast('No account found with this email. Please click Sign Up first!', 'error');
+      return false;
+    }
+
+    if (user.password && password && user.password !== password) {
+      showToast('Incorrect password. Please check your credentials.', 'error');
+      return false;
     }
 
     // Login successful
     setCurrentUser(user);
     showToast(`Welcome back, ${user.name}!`);
-    setCurrentView('find-projects');
+    if (user.role === 'admin') {
+      setCurrentView('admin');
+    } else if (user.role === 'client') {
+      setCurrentView('my-projects');
+    } else {
+      setCurrentView('find-projects');
+    }
     return true;
   };
 
   // Auth: Google Sign In / Sign Up
   const loginWithGoogle = (role = 'student') => {
+    const isClient = role === 'client';
+    const email = isClient ? 'client.google@gmail.com' : 'student.google@gmail.com';
     const googleUser = {
       id: `user-google-${Date.now()}`,
-      name: 'Google User',
-      email: 'user.google@gmail.com',
+      name: isClient ? 'Google Business Client' : 'Google Verified Student',
+      email,
       role,
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-      university: 'Faculty of Science & IT',
-      department: 'Software Engineering',
-      studentId: 'GOOGLE-2026',
-      headline: 'Google Verified Student Developer',
-      bio: 'Enthusiastic software engineering student specializing in web and mobile app development.',
+      company: isClient ? 'Google Partner Ventures' : undefined,
+      industry: isClient ? 'Technology & Digital Media' : undefined,
+      university: isClient ? undefined : 'Faculty of Science & IT',
+      department: isClient ? undefined : 'Software Engineering',
+      studentId: isClient ? undefined : 'GOOGLE-2026',
+      headline: isClient ? 'Verified Client & Employer' : 'Google Verified Student Developer',
+      bio: isClient ? 'Hiring student developers for web & mobile apps.' : 'Enthusiastic software engineering student.',
       hourlyRate: 22,
       experienceLevel: 'Intermediate',
       availability: 'Part-Time',
       rating: 5.0,
       reviewsCount: 0,
       completedProjectsCount: 0,
-      skills: ['React', 'JavaScript', 'UI Design', 'Tailwind CSS', 'WordPress'],
+      skills: isClient ? [] : ['React', 'JavaScript', 'UI Design', 'Tailwind CSS', 'WordPress'],
       portfolio: [],
       password: 'google-oauth-token',
     };
@@ -219,7 +211,11 @@ export function AppProvider({ children }) {
       setCurrentUser(googleUser);
       showToast('Signed up and logged in with Google successfully!');
     }
-    setCurrentView('find-projects');
+    if (role === 'client') {
+      setCurrentView('my-projects');
+    } else {
+      setCurrentView('find-projects');
+    }
     return true;
   };
 
