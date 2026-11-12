@@ -114,8 +114,30 @@ const INITIAL_PROJECTS = [
 ];
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+// SECURITY HARDENING 1: Disable server signature to prevent server profiling
+app.disable('x-powered-by');
+
+// SECURITY HARDENING 2: Apply enterprise security headers on every response
+app.use((req, res, next) => {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
+
+// SECURITY HARDENING 3: Safe CORS configuration
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// SECURITY HARDENING 4: Restrict request body size to prevent memory-exhaustion DoS
+app.use(express.json({ limit: '100kb' }));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', platform: 'Prilans Student Marketplace' });
