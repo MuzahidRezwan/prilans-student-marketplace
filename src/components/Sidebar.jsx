@@ -16,7 +16,7 @@ import {
   PlusCircle,
   Award,
   Layers,
-  LogIn
+  LogOut
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -28,16 +28,16 @@ export default function Sidebar() {
     messages,
     setActiveModal,
     switchUser,
+    logoutUser,
     users
   } = useApp();
 
-  // Calculate unread or active counts
-  const myProposalsCount = applications.filter(a => a.studentId === currentUser.id).length;
-  const unreadMessagesCount = messages.filter(m => m.toId === currentUser.id && !m.read).length;
+  const myProposalsCount = applications.filter(a => a.studentId === currentUser?.id).length;
+  const unreadMessagesCount = messages.filter(m => m.toId === currentUser?.id && !m.read).length;
 
-  const isStudent = currentUser.role === 'student';
-  const isClient = currentUser.role === 'client';
-  const isAdmin = currentUser.role === 'admin';
+  const isStudent = currentUser?.role === 'student';
+  const isClient = currentUser?.role === 'client';
+  const isAdmin = currentUser?.role === 'admin';
 
   return (
     <aside className="w-64 bg-white border-r border-slate-200 min-h-screen flex flex-col justify-between shrink-0 select-none">
@@ -60,56 +60,49 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* User Card with click to view profile or switch account */}
-        <div
-          onClick={() => setCurrentView('auth')}
-          title="Click to go to Sign In / Account Page"
-          className="p-4 mx-3 my-3 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-2xl flex items-center gap-3 cursor-pointer transition-all group"
-        >
-          <img
-            src={currentUser.avatar}
-            alt={currentUser.name}
-            className="w-11 h-11 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
-          />
-          <div className="overflow-hidden min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <h4 className="text-sm font-semibold text-slate-900 truncate group-hover:text-blue-600">{currentUser.name}</h4>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+        {/* User Card with Quick Profile View & Logout */}
+        <div className="p-3.5 mx-3 my-3 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between gap-2">
+          <div
+            onClick={() => setCurrentView('profile')}
+            className="flex items-center gap-2.5 overflow-hidden min-w-0 cursor-pointer group flex-1"
+            title="View Profile"
+          >
+            <img
+              src={currentUser?.avatar}
+              alt={currentUser?.name}
+              className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm shrink-0"
+            />
+            <div className="overflow-hidden min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-slate-900 truncate group-hover:text-blue-600">
+                  {currentUser?.name}
+                </h4>
+              </div>
+              <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded uppercase tracking-wider ${
                 isStudent ? 'bg-blue-100 text-blue-700' :
                 isClient ? 'bg-emerald-100 text-emerald-700' :
                 'bg-purple-100 text-purple-700'
               }`}>
-                {currentUser.role}
+                {currentUser?.role}
               </span>
             </div>
-            <p className="text-xs text-slate-500 truncate">{currentUser.email}</p>
           </div>
+
+          {/* Quick Logout Button */}
+          <button
+            onClick={logoutUser}
+            title="Log Out"
+            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer shrink-0"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Navigation Menu (Matching Image 2 Mockup) */}
-        <div className="px-3 py-2 space-y-1">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2 flex items-center justify-between">
-            <span>Main Menu</span>
-            <span className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono">SE331</span>
+        <div className="px-3 py-1 space-y-1">
+          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">
+            Main Menu
           </div>
-
-          {/* Dedicated Sign In / Register Page Link */}
-          <button
-            onClick={() => setCurrentView('auth')}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-              currentView === 'auth'
-                ? 'bg-blue-600 text-white font-bold shadow-sm'
-                : 'text-slate-700 hover:bg-blue-50 hover:text-blue-700 font-semibold'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <LogIn className="w-4 h-4 text-blue-500" />
-              <span>Login / Register</span>
-            </div>
-            <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">
-              8 marks
-            </span>
-          </button>
 
           <button
             onClick={() => setCurrentView('find-projects')}
@@ -213,9 +206,6 @@ export default function Sidebar() {
               <ShieldCheck className="w-4 h-4 text-purple-600" />
               <span>Admin Dashboard</span>
             </div>
-            <span className="text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded-full font-bold">
-              10 marks
-            </span>
           </button>
 
           {/* Student Profile & Portfolio */}
@@ -241,7 +231,7 @@ export default function Sidebar() {
           {isClient ? (
             <button
               onClick={() => setActiveModal('postJob')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Post a Project</span>
@@ -249,7 +239,7 @@ export default function Sidebar() {
           ) : isStudent ? (
             <button
               onClick={() => setCurrentView('profile')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs font-semibold rounded-xl transition-all"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 text-xs font-semibold rounded-xl transition-all cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-blue-600" />
               <span>Edit Skill Profile</span>
@@ -258,7 +248,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Footer / Plus Plan & Demo Switcher */}
+      {/* Footer / Plus Plan & Logout */}
       <div className="p-3 border-t border-slate-100 space-y-3">
         {/* Plus Plan Card (Matching Image 2 Mockup!) */}
         <div className="p-3.5 bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl text-white shadow-sm">
@@ -273,7 +263,7 @@ export default function Sidebar() {
           </p>
           <a
             href="#upgrade"
-            onClick={(e) => { e.preventDefault(); alert('Plus Plan is free for university students in SE331 capstone!'); }}
+            onClick={(e) => { e.preventDefault(); alert('Plus Plan is free for students!'); }}
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors"
           >
             <span>Upgrade Now</span>
@@ -281,13 +271,13 @@ export default function Sidebar() {
           </a>
         </div>
 
-        {/* Quick Demo Switcher Selector for Grading/Examiners */}
+        {/* Demo Switcher for convenience */}
         <div className="pt-1">
           <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 px-1">
-            Demo Persona Switcher:
+            Switch Account:
           </label>
           <select
-            value={currentUser.id}
+            value={currentUser?.id}
             onChange={(e) => switchUser(e.target.value)}
             className="w-full text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
           >
@@ -298,6 +288,15 @@ export default function Sidebar() {
             ))}
           </select>
         </div>
+
+        {/* Dedicated Logout Button */}
+        <button
+          onClick={logoutUser}
+          className="w-full py-2 px-3 flex items-center justify-center gap-2 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-xl transition-all cursor-pointer"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Log Out</span>
+        </button>
       </div>
     </aside>
   );

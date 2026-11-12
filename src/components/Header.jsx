@@ -5,11 +5,10 @@ import {
   MapPin,
   X,
   Sparkles,
-  PlusCircle,
   RotateCcw,
   User,
   GraduationCap,
-  LogIn
+  LogOut
 } from 'lucide-react';
 
 export default function Header() {
@@ -17,7 +16,7 @@ export default function Header() {
     filters,
     setFilters,
     currentUser,
-    setActiveModal,
+    logoutUser,
     setCurrentView,
     resetDemoData
   } = useApp();
@@ -33,35 +32,32 @@ export default function Header() {
 
   return (
     <div className="bg-white border-b border-slate-200">
-      {/* Top University Course Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white px-6 py-2 flex flex-wrap items-center justify-between text-xs font-medium border-b border-slate-800">
+      {/* Top Banner with University info & User Status */}
+      <div className="bg-slate-900 text-white px-6 py-2.5 flex flex-wrap items-center justify-between text-xs font-medium border-b border-slate-800">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-4 h-4 text-blue-400" />
           <span className="text-slate-200">
-            <strong>SE331:</strong> Software Engineering Design Capstone Project — Assessment 2 (150 min)
-          </span>
-          <span className="hidden md:inline bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full text-[10px] font-semibold border border-blue-400/30">
-            Full 88/88 Marks Architecture
+            <strong>Prilans:</strong> University Student Talent & Freelance Marketplace
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Prominent Login / Register Button */}
+        <div className="flex items-center gap-4">
+          {currentUser && (
+            <div className="flex items-center gap-2 text-slate-300">
+              <span className="text-[11px] text-slate-400">Signed in as:</span>
+              <span className="font-bold text-white">{currentUser.name}</span>
+              <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                {currentUser.role}
+              </span>
+            </div>
+          )}
+
           <button
-            onClick={() => setCurrentView('auth')}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-xs font-bold transition-all shadow-xs"
+            onClick={logoutUser}
+            className="flex items-center gap-1.5 text-rose-400 hover:text-rose-300 transition-colors font-bold cursor-pointer"
           >
-            <LogIn className="w-3.5 h-3.5" />
-            <span>Login / Register (8m)</span>
-          </button>
-          <span className="text-slate-600">|</span>
-          <button
-            onClick={resetDemoData}
-            title="Reset to default seed state"
-            className="flex items-center gap-1 text-slate-400 hover:text-amber-300 transition-colors"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span>Reset Demo</span>
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Log Out</span>
           </button>
         </div>
       </div>

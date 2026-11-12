@@ -25,8 +25,7 @@ export default function MyProposalsPage() {
 
   const [activeTab, setActiveTab] = useState('All');
 
-  // Filter student's applications
-  const myApps = applications.filter(a => a.studentId === currentUser.id);
+  const myApps = applications.filter(a => a.studentId === currentUser?.id);
 
   const filteredApps = myApps.filter(a => {
     if (activeTab === 'All') return true;
@@ -55,12 +54,7 @@ export default function MyProposalsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200 gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full border border-blue-200">
-              Feature: View Application Status (7 Marks)
-            </span>
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 mt-2">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             My Submitted Proposals & Applications
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -77,7 +71,7 @@ export default function MyProposalsPage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === tab
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-500 hover:text-slate-900'
@@ -167,7 +161,7 @@ export default function MyProposalsPage() {
                         setSelectedProject(project);
                         setActiveModal('projectDetails');
                       }}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition-all"
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl transition-all cursor-pointer"
                     >
                       View Project Specs
                     </button>

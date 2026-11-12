@@ -16,16 +16,34 @@ import ProjectDetailsModal from './components/ProjectDetailsModal';
 import ApplyModal from './components/ApplyModal';
 import PostJobModal from './components/PostJobModal';
 import TalentMatcherModal from './components/TalentMatcherModal';
-import AuthModal from './components/AuthModal';
 import ReviewModal from './components/ReviewModal';
 
 export default function App() {
   const {
+    currentUser,
     currentView,
     activeModal,
     toastMessage
   } = useApp();
 
+  // AUTHENTICATION GATE:
+  // If the user is not signed in, gate the platform and display the Sign In / Sign Up page!
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-600 selection:text-white">
+        <AuthPage />
+        {toastMessage && (
+          <div className={`fixed bottom-6 right-6 z-50 px-5 py-3.5 rounded-2xl shadow-xl text-xs font-bold text-white transition-all transform animate-in slide-in-from-bottom-5 ${
+            toastMessage.type === 'error' ? 'bg-rose-600' : 'bg-slate-900'
+          }`}>
+            {toastMessage.message}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Once signed in, enter the main project platform!
   return (
     <div className="flex min-h-screen bg-slate-50/70 font-sans text-slate-900 selection:bg-blue-600 selection:text-white">
       {/* Left Sidebar (Matching Mockup in Image 2) */}
@@ -45,7 +63,6 @@ export default function App() {
           {currentView === 'profile' && <StudentProfilePage />}
           {currentView === 'admin' && <AdminDashboardPage />}
           {currentView === 'messages' && <MessagesPage />}
-          {currentView === 'auth' && <AuthPage />}
         </main>
       </div>
 
@@ -54,7 +71,6 @@ export default function App() {
       {activeModal === 'apply' && <ApplyModal />}
       {activeModal === 'postJob' && <PostJobModal />}
       {activeModal === 'talentMatcher' && <TalentMatcherModal />}
-      {activeModal === 'authModal' && <AuthModal />}
       {activeModal === 'submitReview' && <ReviewModal />}
 
       {/* Global Toast Notification */}

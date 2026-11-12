@@ -32,10 +32,9 @@ export default function ClientProjectsPage() {
   const [expandedProjectId, setExpandedProjectId] = useState(null);
   const [feedbackInput, setFeedbackInput] = useState({});
 
-  // Client's posted projects (or all projects if admin)
-  const clientProjects = currentUser.role === 'admin'
+  const clientProjects = currentUser?.role === 'admin'
     ? projects
-    : projects.filter(p => p.clientId === currentUser.id);
+    : projects.filter(p => p.clientId === currentUser?.id);
 
   const toggleExpand = (projectId) => {
     setExpandedProjectId(prev => prev === projectId ? null : projectId);
@@ -45,7 +44,6 @@ export default function ClientProjectsPage() {
     const feedback = feedbackInput[app.id] || '';
     updateApplicationStatus(app.id, newStatus, feedback);
 
-    // If marked Completed, prompt review modal
     if (newStatus === 'Completed') {
       setReviewTargetApp(app);
       setActiveModal('submitReview');
@@ -62,15 +60,7 @@ export default function ClientProjectsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200 gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200">
-              Employer / Client Portal
-            </span>
-            <span className="text-xs font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full border border-blue-200">
-              Status Updates (5 Marks)
-            </span>
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 mt-2">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             My Posted Projects & Candidate Review
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -83,7 +73,7 @@ export default function ClientProjectsPage() {
           className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
         >
           <PlusCircle className="w-4 h-4" />
-          <span>Publish New Project (8m)</span>
+          <span>Publish New Project</span>
         </button>
       </div>
 
@@ -123,19 +113,17 @@ export default function ClientProjectsPage() {
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-2 self-stretch md:self-auto justify-end">
-                  {/* Bonus Challenge Button */}
                   <button
                     onClick={() => handleOpenTalentMatch(project)}
-                    className="px-3 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
-                    title="Run Bonus Challenge Matching Engine"
+                    className="px-3 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                    <span>AI Talent Match (5m)</span>
+                    <span>AI Talent Match</span>
                   </button>
 
                   <button
                     onClick={() => toggleExpand(project.id)}
-                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1"
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <Users className="w-3.5 h-3.5" />
                     <span>Applications ({projectApps.length})</span>
@@ -193,7 +181,7 @@ export default function ClientProjectsPage() {
                             "{app.coverLetter}"
                           </div>
 
-                          {/* Status Management Actions (Advanced Feature 3: Status Updates - 5 Marks) */}
+                          {/* Status Management Actions */}
                           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-slate-200/60">
                             <div className="flex items-center gap-2 text-xs">
                               <span className="font-bold text-slate-500">Current Status:</span>
@@ -206,29 +194,29 @@ export default function ClientProjectsPage() {
                             <div className="flex flex-wrap items-center gap-2">
                               <button
                                 onClick={() => handleStatusChange(app, 'Shortlisted')}
-                                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 transition-colors"
+                                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 transition-colors cursor-pointer"
                               >
                                 Shortlist
                               </button>
 
                               <button
                                 onClick={() => handleStatusChange(app, 'Accepted')}
-                                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 transition-colors"
+                                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 transition-colors cursor-pointer"
                               >
                                 Accept & Hire
                               </button>
 
                               <button
                                 onClick={() => handleStatusChange(app, 'Completed')}
-                                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center gap-1 shadow-xs"
+                                className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
                               >
                                 <Award className="w-3.5 h-3.5" />
-                                <span>Mark Completed & Rate (5m)</span>
+                                <span>Mark Completed & Rate</span>
                               </button>
 
                               <button
                                 onClick={() => handleStatusChange(app, 'Declined')}
-                                className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-200 hover:bg-rose-100 hover:text-rose-700 text-slate-600 transition-colors"
+                                className="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-200 hover:bg-rose-100 hover:text-rose-700 text-slate-600 transition-colors cursor-pointer"
                               >
                                 Decline
                               </button>

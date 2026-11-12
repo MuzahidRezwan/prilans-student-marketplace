@@ -15,12 +15,14 @@ import {
   Edit3,
   CheckCircle2,
   Briefcase,
-  Layers
+  Layers,
+  LogOut
 } from 'lucide-react';
 
 export default function StudentProfilePage() {
   const {
     currentUser,
+    logoutUser,
     updateUserProfile,
     addPortfolioItem,
     deletePortfolioItem,
@@ -31,14 +33,14 @@ export default function StudentProfilePage() {
   const [isAddingPortfolio, setIsAddingPortfolio] = useState(false);
 
   // Profile Form state
-  const [headline, setHeadline] = useState(currentUser.headline || '');
-  const [bio, setBio] = useState(currentUser.bio || '');
-  const [hourlyRate, setHourlyRate] = useState(currentUser.hourlyRate || 20);
-  const [availability, setAvailability] = useState(currentUser.availability || 'Part-Time (20 hrs/week)');
-  const [experienceLevel, setExperienceLevel] = useState(currentUser.experienceLevel || 'Intermediate');
-  const [university, setUniversity] = useState(currentUser.university || '');
-  const [department, setDepartment] = useState(currentUser.department || '');
-  const [studentId, setStudentId] = useState(currentUser.studentId || '');
+  const [headline, setHeadline] = useState(currentUser?.headline || '');
+  const [bio, setBio] = useState(currentUser?.bio || '');
+  const [hourlyRate, setHourlyRate] = useState(currentUser?.hourlyRate || 20);
+  const [availability, setAvailability] = useState(currentUser?.availability || 'Part-Time (20 hrs/week)');
+  const [experienceLevel, setExperienceLevel] = useState(currentUser?.experienceLevel || 'Intermediate');
+  const [university, setUniversity] = useState(currentUser?.university || '');
+  const [department, setDepartment] = useState(currentUser?.department || '');
+  const [studentId, setStudentId] = useState(currentUser?.studentId || '');
   const [newSkill, setNewSkill] = useState('');
 
   // Portfolio Form state
@@ -50,7 +52,7 @@ export default function StudentProfilePage() {
   const [portImage, setPortImage] = useState('');
   const [portTags, setPortTags] = useState('React, Tailwind CSS');
 
-  const studentReviews = reviews.filter(r => r.studentId === currentUser.id);
+  const studentReviews = reviews.filter(r => r.studentId === currentUser?.id);
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
@@ -70,7 +72,7 @@ export default function StudentProfilePage() {
   const handleAddSkillTag = (e) => {
     e.preventDefault();
     if (!newSkill.trim()) return;
-    const current = currentUser.skills || [];
+    const current = currentUser?.skills || [];
     if (!current.includes(newSkill.trim())) {
       updateUserProfile(currentUser.id, {
         skills: [...current, newSkill.trim()]
@@ -80,7 +82,7 @@ export default function StudentProfilePage() {
   };
 
   const handleRemoveSkillTag = (skillToRemove) => {
-    const updated = (currentUser.skills || []).filter(s => s !== skillToRemove);
+    const updated = (currentUser?.skills || []).filter(s => s !== skillToRemove);
     updateUserProfile(currentUser.id, { skills: updated });
   };
 
@@ -104,18 +106,10 @@ export default function StudentProfilePage() {
     setIsAddingPortfolio(false);
   };
 
+  if (!currentUser) return null;
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 space-y-8">
-      {/* Marking rubric pill indicator */}
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="text-xs font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full border border-blue-200">
-          Feature: Create Student Skill Profile (8 Marks)
-        </span>
-        <span className="text-xs font-bold bg-purple-100 text-purple-800 px-3 py-1 rounded-full border border-purple-200">
-          Advanced: Student Portfolio Management (5 Marks)
-        </span>
-      </div>
-
       {/* Main Student Header Card */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pb-6 border-b border-slate-100">
@@ -144,7 +138,7 @@ export default function StudentProfilePage() {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-2">
                 <span className="flex items-center gap-1">
                   <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
-                  {currentUser.university || 'SE331 Department of Software Engineering'}
+                  {currentUser.university || 'Department of Software Engineering'}
                 </span>
                 <span>•</span>
                 <span>ID: {currentUser.studentId || 'SE-2023-7841'}</span>
@@ -154,26 +148,36 @@ export default function StudentProfilePage() {
             </div>
           </div>
 
-          <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
+          <div className="flex flex-col items-start sm:items-end gap-3 w-full sm:w-auto">
             <div className="text-left sm:text-right">
               <span className="text-xs text-slate-400 font-medium">Hourly Rate</span>
               <div className="text-2xl font-black text-slate-900">${currentUser.hourlyRate}/hr</div>
             </div>
 
-            <button
-              onClick={() => setIsEditingProfile(!isEditingProfile)}
-              className="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition-all flex items-center gap-1.5"
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>{isEditingProfile ? 'Cancel Edit' : 'Edit Skill Profile (8m)'}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsEditingProfile(!isEditingProfile)}
+                className="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>{isEditingProfile ? 'Cancel Edit' : 'Edit Profile'}</span>
+              </button>
+
+              <button
+                onClick={logoutUser}
+                className="px-4 py-2 text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Log Out</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Edit Profile Form Drawer */}
         {isEditingProfile && (
           <form onSubmit={handleSaveProfile} className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
-            <h3 className="font-bold text-slate-900 text-sm">Update Student Profile Details</h3>
+            <h3 className="font-bold text-slate-900 text-sm">Update Profile Details</h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -232,13 +236,13 @@ export default function StudentProfilePage() {
               <button
                 type="button"
                 onClick={() => setIsEditingProfile(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl"
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs"
+                className="px-5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs cursor-pointer"
               >
                 Save Profile Changes
               </button>
@@ -254,14 +258,14 @@ export default function StudentProfilePage() {
           </p>
         </div>
 
-        {/* Skills Management Section (Image 1 Rubric: Create Student Skill Profile) */}
+        {/* Skills Management Section */}
         <div className="pt-6 border-t border-slate-100 mt-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Verified Technical & Creative Skills ({currentUser.skills ? currentUser.skills.length : 0})
+              Technical & Creative Skills ({currentUser.skills ? currentUser.skills.length : 0})
             </h3>
             <span className="text-[11px] text-blue-600 font-semibold">
-              Powering the recommendation engine
+              Powering your job recommendations
             </span>
           </div>
 
@@ -275,7 +279,7 @@ export default function StudentProfilePage() {
                 <span>{skill}</span>
                 <button
                   onClick={() => handleRemoveSkillTag(skill)}
-                  className="text-blue-400 hover:text-red-500 ml-0.5"
+                  className="text-blue-400 hover:text-red-500 ml-0.5 cursor-pointer"
                   title="Remove Skill"
                 >
                   ×
@@ -295,7 +299,7 @@ export default function StudentProfilePage() {
             />
             <button
               type="submit"
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1 shrink-0"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1 shrink-0 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Skill</span>
@@ -304,18 +308,18 @@ export default function StudentProfilePage() {
         </div>
       </div>
 
-      {/* Advanced Feature 2: Student Portfolio Management (5 Marks) */}
+      {/* Student Portfolio Management */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-100 gap-4">
           <div>
             <div className="flex items-center gap-2">
               <Layers className="w-5 h-5 text-purple-600" />
               <h2 className="text-xl font-black text-slate-900">
-                Portfolio Showcase Management
+                Portfolio Showcase
               </h2>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Demonstrate coursework, client projects, and deployed web apps to clients.
+              Demonstrate coursework, client projects, and deployed web apps to potential employers.
             </p>
           </div>
 
@@ -324,14 +328,14 @@ export default function StudentProfilePage() {
             className="px-4 py-2.5 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Portfolio Work (5m)</span>
+            <span>Add Portfolio Work</span>
           </button>
         </div>
 
         {/* Add Portfolio Modal Drawer */}
         {isAddingPortfolio && (
           <form onSubmit={handleCreatePortfolio} className="my-6 p-6 bg-purple-50/50 rounded-2xl border border-purple-200 space-y-4">
-            <h3 className="font-bold text-purple-950 text-sm">Add New Project to Student Portfolio</h3>
+            <h3 className="font-bold text-purple-950 text-sm">Add New Project to Portfolio</h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -423,13 +427,13 @@ export default function StudentProfilePage() {
               <button
                 type="button"
                 onClick={() => setIsAddingPortfolio(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl"
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs"
+                className="px-5 py-2 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs cursor-pointer"
               >
                 Publish to Portfolio
               </button>
@@ -462,7 +466,7 @@ export default function StudentProfilePage() {
                       <h4 className="font-bold text-slate-900 text-base">{item.title}</h4>
                       <button
                         onClick={() => deletePortfolioItem(currentUser.id, item.id)}
-                        className="text-slate-400 hover:text-red-500 p-1 transition-colors"
+                        className="text-slate-400 hover:text-red-500 p-1 transition-colors cursor-pointer"
                         title="Delete Item"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -520,7 +524,7 @@ export default function StudentProfilePage() {
         </div>
       </div>
 
-      {/* Verified Reviews Section (Image 1 Rubric: Rating and review system 5 marks) */}
+      {/* Verified Reviews Section */}
       <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs">
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
           <div>
@@ -529,9 +533,6 @@ export default function StudentProfilePage() {
               Verified evaluations submitted by employers upon completed projects.
             </p>
           </div>
-          <span className="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-full border border-amber-200">
-            Rating System (5 Marks)
-          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

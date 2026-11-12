@@ -8,18 +8,25 @@ import {
 } from '../data/seedData';
 import { calculateMatchScore } from '../utils/matchingAlgorithm';
 
+// Add default passwords to initial seed users if not present
+const SEED_USERS_WITH_PASSWORD = INITIAL_USERS.map(u => ({
+  ...u,
+  password: u.password || 'password123'
+}));
+
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  // Load from localStorage or seed
+  // Load users from localStorage or seed
   const [users, setUsers] = useState(() => {
     const saved = localStorage.getItem('prilans_users');
-    return saved ? JSON.parse(saved) : INITIAL_USERS;
+    return saved ? JSON.parse(saved) : SEED_USERS_WITH_PASSWORD;
   });
 
+  // Current logged in user (null by default if logged out)
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('prilans_current_user');
-    return saved ? JSON.parse(saved) : INITIAL_USERS[0]; // Student Akmal by default
+    return saved ? JSON.parse(saved) : null; // Starts as null so user must authenticate
   });
 
   const [projects, setProjects] = useState(() => {
@@ -42,24 +49,24 @@ export function AppProvider({ children }) {
     return saved ? JSON.parse(saved) : INITIAL_MESSAGES;
   });
 
-  // Navigation & Active View State
-  const [currentView, setCurrentView] = useState('find-projects'); // 'find-projects' | 'find-students' | 'my-projects' | 'my-proposals' | 'messages' | 'admin' | 'profile'
+  // Navigation state
+  const [currentView, setCurrentView] = useState('find-projects');
 
-  // Filter state for Project Marketplace (Matching Image 2 UI)
+  // Filter state
   const [filters, setFilters] = useState({
     searchQuery: '',
     location: '',
     category: 'All',
-    experienceLevel: 'Any', // 'Any' | 'Entry Level' | 'Intermediate' | 'Expert'
-    projectType: 'All', // 'All' | 'Hourly' | 'Fixed Price'
-    budgetRange: 'Any', // 'Any' | 'Less than $100' | '$100 to $500' | '$500 to $1k' | '$1k to $5k' | '$5k+'
-    proposalsRange: 'Any', // 'Any' | 'Less than 5' | '5 to 10' | '10 to 15' | '15 to 20'
-    sortBy: 'Newest', // 'Newest' | 'Highest Budget' | 'Most Proposals' | 'Best Skill Match'
-    viewMode: 'grid', // 'grid' | 'list'
+    experienceLevel: 'Any',
+    projectType: 'All',
+    budgetRange: 'Any',
+    proposalsRange: 'Any',
+    sortBy: 'Newest',
+    viewMode: 'grid',
   });
 
   // Modals
-  const [activeModal, setActiveModal] = useState(null); // 'apply' | 'postJob' | 'projectDetails' | 'editProfile' | 'addPortfolio' | 'submitReview' | 'talentMatcher' | 'authModal'
+  const [activeModal, setActiveModal] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [reviewTargetApp, setReviewTargetApp] = useState(null);
@@ -71,7 +78,11 @@ export function AppProvider({ children }) {
   }, [users]);
 
   useEffect(() => {
-    localStorage.setItem('prilans_current_user', JSON.stringify(currentUser));
+    if (currentUser) {
+      localStorage.setItem('prilans_current_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('prilans_current_user');
+    }
   }, [currentUser]);
 
   useEffect(() => {
@@ -97,12 +108,12 @@ export function AppProvider({ children }) {
     }, 4000);
   };
 
-  // Switch role / user
+  // Switch role / user (for demo purposes)
   const switchUser = (userId) => {
     const user = users.find(u => u.id === userId);
     if (user) {
       setCurrentUser(user);
-      showToast(`Switched account to: ${user.name} (${user.role.toUpperCase()})`);
+      showToast(`Switched account to: ${user.name}`);
       if (user.role === 'admin' && currentView !== 'admin') {
         setCurrentView('admin');
       } else if (user.role === 'client' && currentView === 'my-proposals') {
@@ -113,8 +124,15 @@ export function AppProvider({ children }) {
     }
   };
 
-  // Auth: Register User
+  // Auth: Register / Sign Up User (with password!)
   const registerUser = (userData) => {
+    // Check if user already exists
+    const existing = users.find(u => u.email.toLowerCase() === userData.email.toLowerCase());
+    if (existing) {
+      showToast('An account with this email already exists. Please Sign In.', 'error');
+      return false;
+    }
+
     const newUser = {
       id: `user-${userData.role}-${Date.now()}`,
       rating: 5.0,
@@ -123,25 +141,78 @@ export function AppProvider({ children }) {
       skills: [],
       portfolio: [],
       avatar: userData.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userData.name)}`,
+      password: userData.password || 'password123',
       ...userData,
     };
+
     setUsers(prev => [newUser, ...prev]);
     setCurrentUser(newUser);
-    showToast(`Welcome ${newUser.name}! Your ${newUser.role} account has been created.`);
+    showToast(`Welcome ${newUser.name}! Your account has been created.`);
     return newUser;
   };
 
-  // Auth: Login User
-  const loginUser = (email, role) => {
+  // Auth: Sign In with Email & Password
+  const loginUser = (email, password) => {
     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (user) {
-      setCurrentUser(user);
-      showToast(`Welcome back, ${user.name}!`);
-      return true;
-    } else {
-      showToast(`No account found with ${email}. Please check details or register.`, 'error');
+    if (!user) {
+      showToast('No account found with this email. Please Sign Up.', 'error');
       return false;
     }
+
+    if (user.password && user.password !== password) {
+      showToast('Incorrect password. Please try again.', 'error');
+      return false;
+    }
+
+    setCurrentUser(user);
+    showToast(`Welcome back, ${user.name}!`);
+    return true;
+  };
+
+  // Auth: Google Sign In / Sign Up
+  const loginWithGoogle = (role = 'student') => {
+    const googleUser = {
+      id: `user-google-${Date.now()}`,
+      name: 'Google User',
+      email: 'user.google@gmail.com',
+      role,
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      university: 'Faculty of Science & IT',
+      department: 'Software Engineering',
+      studentId: 'GOOGLE-2026',
+      headline: 'Google Verified Student Developer',
+      bio: 'Enthusiastic software engineering student specializing in web and mobile app development.',
+      hourlyRate: 22,
+      experienceLevel: 'Intermediate',
+      availability: 'Part-Time',
+      rating: 5.0,
+      reviewsCount: 0,
+      completedProjectsCount: 0,
+      skills: ['React', 'JavaScript', 'UI Design', 'Tailwind CSS', 'WordPress'],
+      portfolio: [],
+      password: 'google-oauth-token',
+    };
+
+    // If an existing Google user exists, log in as them
+    const existing = users.find(u => u.email === googleUser.email);
+    if (existing) {
+      setCurrentUser(existing);
+      showToast(`Signed in with Google as ${existing.name}`);
+    } else {
+      setUsers(prev => [googleUser, ...prev]);
+      setCurrentUser(googleUser);
+      showToast('Signed up and logged in with Google successfully!');
+    }
+    setCurrentView('find-projects');
+    return true;
+  };
+
+  // Auth: Logout User
+  const logoutUser = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('prilans_current_user');
+    setCurrentView('find-projects');
+    showToast('Logged out successfully.');
   };
 
   // Update User Profile
@@ -149,7 +220,7 @@ export function AppProvider({ children }) {
     setUsers(prev => prev.map(u => {
       if (u.id === userId) {
         const updated = { ...u, ...updatedFields };
-        if (currentUser.id === userId) {
+        if (currentUser?.id === userId) {
           setCurrentUser(updated);
         }
         return updated;
@@ -159,7 +230,7 @@ export function AppProvider({ children }) {
     showToast('Profile updated successfully!');
   };
 
-  // Add Portfolio Item to Student Profile
+  // Add Portfolio Item
   const addPortfolioItem = (studentId, item) => {
     const newPort = {
       id: `port-${Date.now()}`,
@@ -170,7 +241,7 @@ export function AppProvider({ children }) {
       if (u.id === studentId) {
         const updatedPort = [newPort, ...(u.portfolio || [])];
         const updated = { ...u, portfolio: updatedPort };
-        if (currentUser.id === studentId) setCurrentUser(updated);
+        if (currentUser?.id === studentId) setCurrentUser(updated);
         return updated;
       }
       return u;
@@ -184,7 +255,7 @@ export function AppProvider({ children }) {
       if (u.id === studentId) {
         const updatedPort = (u.portfolio || []).filter(p => p.id !== portId);
         const updated = { ...u, portfolio: updatedPort };
-        if (currentUser.id === studentId) setCurrentUser(updated);
+        if (currentUser?.id === studentId) setCurrentUser(updated);
         return updated;
       }
       return u;
@@ -192,14 +263,14 @@ export function AppProvider({ children }) {
     showToast('Portfolio item removed.');
   };
 
-  // Publish a Project / Job Request (Client)
+  // Publish a Project / Job Request
   const createProject = (projectData) => {
     const newProject = {
       id: `proj-${Date.now()}`,
-      clientId: currentUser.id,
-      clientName: currentUser.name || currentUser.company || 'Verified Client',
-      location: currentUser.location || 'United States',
-      countryCode: currentUser.countryCode || 'US',
+      clientId: currentUser ? currentUser.id : 'user-client-1',
+      clientName: currentUser ? (currentUser.name || currentUser.company) : 'Verified Client',
+      location: currentUser?.location || 'United States',
+      countryCode: currentUser?.countryCode || 'US',
       verified: true,
       postedTime: 'Just now',
       hiringStatus: 'Still Selecting',
@@ -212,18 +283,23 @@ export function AppProvider({ children }) {
     return newProject;
   };
 
-  // Delete / Moderate Project
+  // Delete Project
   const deleteProject = (projectId) => {
     setProjects(prev => prev.filter(p => p.id !== projectId));
-    showToast('Project deleted.');
+    showToast('Project removed.');
   };
 
-  // Apply for a Project (Student)
+  // Apply for a Project
   const submitApplication = ({ projectId, proposedRate, deliveryDays, coverLetter, portfolioSamples }) => {
+    if (!currentUser) {
+      showToast('Please Sign In to apply for projects', 'error');
+      return false;
+    }
+
     const project = projects.find(p => p.id === projectId);
     if (!project) return false;
 
-    // Check duplicate application
+    // Check duplicate
     const existing = applications.find(a => a.projectId === projectId && a.studentId === currentUser.id);
     if (existing) {
       showToast('You have already applied for this project!', 'error');
@@ -248,12 +324,11 @@ export function AppProvider({ children }) {
       appliedAt: new Date().toISOString(),
       status: 'Submitted',
       matchScore: match.score,
-      clientFeedback: 'Application under preliminary review.',
+      clientFeedback: 'Application under review.',
     };
 
     setApplications(prev => [newApp, ...prev]);
 
-    // Update proposal count on project
     setProjects(prev => prev.map(p => {
       if (p.id === projectId) {
         return { ...p, proposalsCount: (p.proposalsCount || 0) + 1 };
@@ -261,11 +336,11 @@ export function AppProvider({ children }) {
       return p;
     }));
 
-    showToast('Application submitted successfully! Track status in "My Proposals".');
+    showToast('Proposal submitted successfully! Check status in "My Proposals".');
     return newApp;
   };
 
-  // Project Application Status Updates (Client / Admin)
+  // Status Updates
   const updateApplicationStatus = (appId, newStatus, feedback = '') => {
     setApplications(prev => prev.map(a => {
       if (a.id === appId) {
@@ -277,11 +352,10 @@ export function AppProvider({ children }) {
       }
       return a;
     }));
-
     showToast(`Application status updated to "${newStatus}"`);
   };
 
-  // Rating and Review System (Client rates Student or vice versa)
+  // Review & Rating
   const submitReview = ({ projectId, projectTitle, studentId, studentName, rating, comment }) => {
     const newRev = {
       id: `rev-${Date.now()}`,
@@ -289,8 +363,8 @@ export function AppProvider({ children }) {
       projectTitle,
       studentId,
       studentName,
-      clientId: currentUser.id,
-      clientName: currentUser.name || currentUser.company,
+      clientId: currentUser?.id,
+      clientName: currentUser?.name || currentUser?.company || 'Verified Client',
       rating: Number(rating),
       comment,
       date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
@@ -298,7 +372,6 @@ export function AppProvider({ children }) {
 
     setReviews(prev => [newRev, ...prev]);
 
-    // Recalculate student average rating
     setUsers(prev => prev.map(u => {
       if (u.id === studentId) {
         const studentRevs = [newRev, ...reviews.filter(r => r.studentId === studentId)];
@@ -309,7 +382,7 @@ export function AppProvider({ children }) {
           reviewsCount: studentRevs.length,
           completedProjectsCount: (u.completedProjectsCount || 0) + 1,
         };
-        if (currentUser.id === studentId) setCurrentUser(updated);
+        if (currentUser?.id === studentId) setCurrentUser(updated);
         return updated;
       }
       return u;
@@ -322,8 +395,8 @@ export function AppProvider({ children }) {
   const sendMessage = ({ toId, toName, projectTitle, content }) => {
     const newMsg = {
       id: `msg-${Date.now()}`,
-      fromId: currentUser.id,
-      fromName: currentUser.name || currentUser.company,
+      fromId: currentUser ? currentUser.id : 'user-client-1',
+      fromName: currentUser ? (currentUser.name || currentUser.company) : 'Client',
       toId,
       toName,
       projectTitle,
@@ -337,14 +410,9 @@ export function AppProvider({ children }) {
 
   // Reset to initial demo state
   const resetDemoData = () => {
-    localStorage.removeItem('prilans_users');
-    localStorage.removeItem('prilans_current_user');
-    localStorage.removeItem('prilans_projects');
-    localStorage.removeItem('prilans_applications');
-    localStorage.removeItem('prilans_reviews');
-    localStorage.removeItem('prilans_messages');
-    setUsers(INITIAL_USERS);
-    setCurrentUser(INITIAL_USERS[0]);
+    localStorage.clear();
+    setUsers(SEED_USERS_WITH_PASSWORD);
+    setCurrentUser(SEED_USERS_WITH_PASSWORD[0]);
     setProjects(INITIAL_PROJECTS);
     setApplications(INITIAL_APPLICATIONS);
     setReviews(INITIAL_REVIEWS);
@@ -360,6 +428,8 @@ export function AppProvider({ children }) {
         switchUser,
         registerUser,
         loginUser,
+        loginWithGoogle,
+        logoutUser,
         updateUserProfile,
         addPortfolioItem,
         deletePortfolioItem,
