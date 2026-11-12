@@ -1,7 +1,4 @@
 # Prilans — Student Talent & Freelance Marketplace
-> **Course Code:** SE331 | **Title:** Software Engineering Design Capstone Project  
-> **Faculty:** Faculty of Science and Information Technology | **Dept.:** Dept. of Software Engineering  
-> **Assessment 2** | **Full Rubric Coverage: 88 / 88 Marks (100%)**
 
 ---
 
@@ -11,29 +8,6 @@ Many university students possess valuable technical and creative skills but stru
 
 **Prilans** is a modern, responsive freelance platform built to bridge this gap by connecting university students with clients and small businesses seeking high-quality, affordable digital services.
 
----
-
-## 📋 Comprehensive Marking Criteria Mapping
-
-| Category | Feature | Marks | Status | Implementation Details |
-| :--- | :--- | :---: | :---: | :--- |
-| **Required** | Student registration/login | **8** | ✅ Complete | Student & Client role auth, profile persistence, 1-click demo persona switcher |
-| **Required** | Create student skill profile | **8** | ✅ Complete | Full academic info, GPA/ID, bio, hourly rate, availability, verified skills tags |
-| **Required** | Publish a project/job request | **8** | ✅ Complete | Title, category, experience level, hourly vs fixed budget, deadline, skills input |
-| **Required** | Browse available projects | **7** | ✅ Complete | Exact UI replication of course mockup (Image 2) with verification badges & meta |
-| **Required** | Search/filter projects | **7** | ✅ Complete | Keyword search, location, category dropdown, experience level, budget, proposals |
-| **Required** | Apply for a project | **8** | ✅ Complete | Proposal form: custom bid, delivery timeline, cover pitch, portfolio attachments |
-| **Required** | View application status | **7** | ✅ Complete | Real-time status tracker (Submitted, In Review, Shortlisted, Accepted, Completed) |
-| **Required** | Admin dashboard | **10** | ✅ Complete | High-level KPIs, job moderation, user verification, and platform audit log |
-| **Subtotal** | | **63** | | |
-| **Advanced** | Skill-based project recommendations | **5** | ✅ Complete | Jaccard overlap algorithm matching student profile skills with project tags |
-| **Advanced** | Student portfolio management | **5** | ✅ Complete | Portfolio showcase CRUD: title, live URL, GitHub repo, cover image, tech tags |
-| **Advanced** | Project application status updates | **5** | ✅ Complete | Employer candidate manager: Shortlist, Accept & Hire, Decline, Complete & Rate |
-| **Advanced** | Rating and review system | **5** | ✅ Complete | 5-star rating and written testimonials calculated into verified student average |
-| **Bonus** | AI Matching mechanism recommending students for a project | **5** | ✅ Complete | 60% skill match + 20% rating + 20% portfolio activity composite ranking |
-| **TOTAL** | | **88 / 88** | 🏆 **100%** | **Full marks achieved across all dimensions** |
-
----
 
 ## 🎨 UI Architecture (Matching Image 2 Mockup)
 
